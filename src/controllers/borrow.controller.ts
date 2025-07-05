@@ -6,7 +6,7 @@ import { handleError } from "../utils/errorhandle";
 export const borrowRoutes = express.Router();
 
 borrowRoutes.post("/", async (req: Request, res: Response) => {
-  const { book, quantity, dueDate } = req.body;
+  const { book, quantity, dueDate, borrowerName } = req.body;
 
   try {
     const foundBook = await Book.findById(book);
@@ -19,10 +19,12 @@ borrowRoutes.post("/", async (req: Request, res: Response) => {
       return handleError(res, 400, "Not enough copies available");
     }
 
+    // foundBook.copies -= quantity;
+    // await foundBook.updateAvailability();
     foundBook.copies -= quantity;
-    await foundBook.updateAvailability();
+    await foundBook.save();
 
-    const borrow = await Borrow.create({ book, quantity, dueDate });
+    const borrow = await Borrow.create({ book, quantity, dueDate, borrowerName });
 
     res.status(201).json({
       success: true,
@@ -41,6 +43,7 @@ borrowRoutes.get("/", async (_req: Request, res: Response) => {
         $group: {
           _id: "$book",
           totalQuantity: { $sum: "$quantity" },
+          borrowers: { $push: "$borrowerName" },
         },
       },
       {
@@ -60,6 +63,7 @@ borrowRoutes.get("/", async (_req: Request, res: Response) => {
             isbn: "$bookDetails.isbn",
           },
           totalQuantity: 1,
+          borrowers: 1,
         },
       },
     ]);

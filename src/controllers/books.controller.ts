@@ -14,8 +14,10 @@ booksRoutes.post('/', async (req: Request, res: Response) => {
     });
 });
 
+
 booksRoutes.get('/', async (req: Request, res: Response) => {
-    const { filter, sortBy = 'createdAt', sort = 'desc', limit = '10' } = req.query;
+    const { filter, sortBy = 'createdAt', sort = 'desc', limit = '10', page = '1' } = req.query;
+
     const query: any = {};
     if (filter) {
         query.genre = filter;
@@ -24,16 +26,29 @@ booksRoutes.get('/', async (req: Request, res: Response) => {
     const sortOptions: any = {};
     sortOptions[sortBy as string] = sort === 'asc' ? 1 : -1;
 
+    const pageNumber = parseInt(page as string);
+    const limitNumber = parseInt(limit as string);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const total = await Book.countDocuments(query);
     const books = await Book.find(query)
         .sort(sortOptions)
-        .limit(parseInt(limit as string));
+        .skip(skip)
+        .limit(limitNumber);
 
     res.status(200).json({
         success: true,
         message: 'Books retrieved successfully',
+        meta: {
+            total,
+            page: pageNumber,
+            limit: limitNumber,
+            totalPages: Math.ceil(total / limitNumber)
+        },
         data: books,
     });
 });
+
 
 booksRoutes.get('/:bookId', async (req: Request, res: Response) => {
     const { bookId } = req.params;

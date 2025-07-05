@@ -2,8 +2,14 @@ import express, { Application, Response, Request } from 'express';
 import { Book } from './models/book.model';
 import { booksRoutes } from './controllers/books.controller';
 import { borrowRoutes } from './controllers/borrow.controller';
+import cors from 'cors';
 
 const app: Application = express();
+
+app.use(cors({
+  origin: ['http://localhost:5173'],
+  credentials: true,
+}));
 
 app.use(express.json())
 
