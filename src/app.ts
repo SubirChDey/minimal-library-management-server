@@ -8,7 +8,6 @@ const app: Application = express();
 
 app.use(cors({
   origin: ['https://library-management-silk-five.vercel.app'],
-  credentials: true,
 }));
 
 app.use(express.json())
